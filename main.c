@@ -1,59 +1,105 @@
 #include <stdio.h>
+#include <string.h>
 #include "models.h"
 #include "file_io.h"
+#include "utils.h"
+#include "auth.h"
 
-/* Deklarasi static agar memori dialokasikan di Data Segment (aman untuk >10.000 struct) */
+/* Array statis di Data Segment agar aman menampung >10.000 struct */
 static Book catalog[MAX_BOOKS];
 static User users[MAX_USERS];
 static Loan loans[MAX_LOANS];
 
-int main(void) {
+/* Kerangka Menu Admin (Akan diisi fungsionalitas penuh pada Tahap 3 & 4) */
+static void run_admin_session(const User *current_admin, int *book_count, int *loan_count) {
+    int choice;
+    while (1) {
+        printf("\n============================================================\n");
+        printf("   MENU ADMIN (PUSTAKAWAN) | Login sebagai: %-15s\n", current_admin->username);
+        printf("   Total Katalog: %d buku | Total Transaksi: %d\n", *book_count, *loan_count);
+        printf("============================================================\n");
+        printf("  1. [Create] Tambah Data Buku Baru\n");
+        printf("  2. [Read]   Tampilkan & Urutkan Katalog Buku (Sorting)\n");
+        printf("  3. [Update] Perbarui Data / Stok Buku\n");
+        printf("  4. [Delete] Hapus Buku dari Katalog\n");
+        printf("  5. [Report] Lihat Seluruh Riwayat Transaksi Peminjaman\n");
+        printf("  0. Logout (Kembali ke Menu Login)\n");
+        printf("------------------------------------------------------------\n");
+
+        choice = read_int_range("Pilih menu Admin [0-5]: ", 0, 5);
+        if (choice == 0) {
+            printf("\n[INFO] Logout berhasil dari sesi Admin.\n");
+            break;
+        }
+        printf("\n[INFO] Fitur menu %d akan diimplementasikan pada tahap berikutnya.\n", choice);
+        press_enter_to_continue();
+    }
+}
+
+/* Kerangka Menu User (Akan diisi fungsionalitas penuh pada Tahap 4 & 5) */
+static void run_user_session(const User *current_user, int *book_count, int *loan_count) {
+    int choice;
+    while (1) {
+        printf("\n============================================================\n");
+        printf("   MENU ANGGOTA PERPUSTAKAAN | Login sebagai: %-13s\n", current_user->username);
+        printf("============================================================\n");
+        printf("  1. Lihat & Urutkan Katalog Buku Tersedia (Sorting)\n");
+        printf("  2. Cari Buku (Berdasarkan ID / Judul)\n");
+        printf("  3. Pinjam Buku\n");
+        printf("  4. Kembalikan Buku\n");
+        printf("  5. Lihat Daftar Peminjaman Aktif Saya\n");
+        printf("  0. Logout (Kembali ke Menu Login)\n");
+        printf("------------------------------------------------------------\n");
+
+        choice = read_int_range("Pilih menu User [0-5]: ", 0, 5);
+        if (choice == 0) {
+            printf("\n[INFO] Logout berhasil dari sesi User.\n");
+            break;
+        }
+        printf("\n[INFO] Fitur menu %d akan diimplementasikan pada tahap berikutnya.\n", choice);
+        press_enter_to_continue();
+    }
+}
+
+int main(int argc, char *argv[]) {
     int book_count = 0;
     int user_count = 0;
     int loan_count = 0;
-    int i;
+    User current_user;
+    int cla_logged_in = 0;
 
-    printf("============================================================\n");
-    printf("   UJI COBA TAHAP 1: INISIALISASI & PARSING DATASET BUKU    \n");
-    printf("============================================================\n\n");
-
-    /* 1. Muat dataset buku (otomatis menyalin Books.txt -> books_db.txt pada run pertama) */
+    /* 1. Inisialisasi dan muat seluruh berkas database ke memori */
     book_count = init_and_load_books(catalog, MAX_BOOKS);
     if (book_count < 0) {
-        printf("Program dihentikan karena dataset tidak ditemukan.\n");
         return 1;
     }
-
-    /* 2. Muat data user dan peminjaman */
     user_count = load_users(users, MAX_USERS);
     loan_count = load_loans(loans, MAX_LOANS);
 
-    printf("\n[RINGKASAN DATA DI MEMORI]\n");
-    printf("- Total Buku Terbaca      : %d buku\n", book_count);
-    printf("- Total Akun Terdaftar    : %d akun\n", user_count);
-    printf("- Total Rekaman Transaksi : %d transaksi\n\n", loan_count);
-
-    /* 3. Tampilkan 5 buku pertama untuk memvalidasi ketepatan parser */
-    printf("[ SAMPEL 5 BUKU PERTAMA ]\n");
-    printf("%-28s | %-35s | %-6s | %-5s | %-4s\n", "OCAID", "JUDUL (Potongan)", "TAHUN", "HAL", "STOK");
-    printf("---------------------------------------------------------------------------------------\n");
-    for (i = 0; i < 5 && i < book_count; i++) {
-        printf("%-28.28s | %-35.35s | %-6d | %-5d | %-4d\n",
-               catalog[i].ocaid,
-               catalog[i].title,
-               catalog[i].year,
-               catalog[i].page_count,
-               catalog[i].stock);
+    /* 2. Cek apakah pengguna melakukan login langsung melalui Command Line Arguments (CLA) */
+    if (argc > 1) {
+        cla_logged_in = login_via_cla(argc, argv, users, user_count, &current_user);
     }
 
-    /* 4. Tampilkan sampel baris ke-32 (indeks 31) yang judulnya 1 kata tanpa tanda petik ("Poems") */
-    if (book_count > 31) {
-        printf("\n[ UJI EDGE-CASE: JUDUL 1 KATA TANPA TANDA PETIK (Indeks 31) ]\n");
-        printf("OCAID  : %s\n", catalog[31].ocaid);
-        printf("Judul  : %s\n", catalog[31].title);
-        printf("Penulis: %s\n", catalog[31].author);
-        printf("Tahun  : %d | Halaman: %d | Stok: %d\n",
-               catalog[31].year, catalog[31].page_count, catalog[31].stock);
+    /* 3. Loop utama aplikasi */
+    while (1) {
+        if (!cla_logged_in) {
+            /* Tampilkan menu autentikasi interaktif jika belum login via CLA */
+            if (!interactive_auth_menu(users, &user_count, MAX_USERS, &current_user)) {
+                printf("\nTerima kasih telah menggunakan Sistem Manajemen Perpustakaan!\n");
+                break;
+            }
+        }
+
+        /* Arahkan ke menu yang sesuai berdasarkan role akun */
+        if (strcmp(current_user.role, "admin") == 0) {
+            run_admin_session(&current_user, &book_count, &loan_count);
+        } else {
+            run_user_session(&current_user, &book_count, &loan_count);
+        }
+
+        /* Setelah logout dari sesi CLA, kembalikan ke mode interaktif */
+        cla_logged_in = 0;
     }
 
     return 0;
