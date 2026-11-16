@@ -22,11 +22,9 @@ int login_via_cla(int argc, char *argv[], const User users[], int user_count, Us
     int i;
 
     if (argc == 3) {
-        /* Format: ./perpustakaan <username> <password> */
         uname = argv[1];
         pass = argv[2];
     } else if (argc >= 5) {
-        /* Format: ./perpustakaan -u <username> -p <password> */
         for (i = 1; i < argc - 1; i++) {
             if (strcmp(argv[i], "-u") == 0) uname = argv[i + 1];
             if (strcmp(argv[i], "-p") == 0) pass = argv[i + 1];
@@ -41,22 +39,20 @@ int login_via_cla(int argc, char *argv[], const User users[], int user_count, Us
                    logged_in_user->username, logged_in_user->role);
             return 1;
         } else {
-            printf("[CLA LOGIN GAGAL] Username atau password dari argumen baris perintah salah!\n");
+            printf("[CLA LOGIN GAGAL] Kredensial dari argumen baris perintah salah!\n");
             return 0;
         }
     }
-
     return 0;
 }
 
-/* Helper internal: Registrasi akun anggota (mahasiswa) baru */
 static void register_new_user(User users[], int *user_count, int max_users) {
     char uname[32];
     char pass[32];
     int i;
 
     if (*user_count >= max_users) {
-        printf("[!] Kapasitas akun penuh, tidak dapat mendaftarkan akun baru.\n");
+        printf("[!] Kapasitas akun penuh.\n");
         return;
     }
 
@@ -68,10 +64,9 @@ static void register_new_user(User users[], int *user_count, int max_users) {
         return;
     }
 
-    /* Cek apakah username sudah terdaftar */
     for (i = 0; i < *user_count; i++) {
         if (strcmp(users[i].username, uname) == 0) {
-            printf("[!] Username '%s' sudah digunakan! Silakan pilih username lain.\n", uname);
+            printf("[!] Username '%s' sudah terdaftar!\n", uname);
             return;
         }
     }
@@ -82,15 +77,13 @@ static void register_new_user(User users[], int *user_count, int max_users) {
         return;
     }
 
-    /* Simpan ke array di memori dan langsung sinkronisasi ke user.txt */
     strcpy(users[*user_count].username, uname);
     strcpy(users[*user_count].password, pass);
     strcpy(users[*user_count].role, "user");
     (*user_count)++;
 
     if (save_users(users, *user_count)) {
-        printf("[SUKSES] Akun '%s' berhasil didaftarkan sebagai 'user' dan disimpan ke %s!\n",
-               uname, DB_USER_FILE);
+        printf("[SUKSES] Akun mahasiswa '%s' berhasil didaftarkan ke %s!\n", uname, DB_USER_FILE);
     }
 }
 
@@ -99,35 +92,44 @@ int interactive_auth_menu(User users[], int *user_count, int max_users, User *lo
     char uname[32];
     char pass[32];
     int idx;
+    const char *expected_role = NULL;
 
     while (1) {
         printf("\n============================================================\n");
         printf("      SISTEM MANAJEMEN PERPUSTAKAAN - GERBANG AUTENTIKASI   \n");
         printf("============================================================\n");
-        printf("  1. Login ke Sistem\n");
-        printf("  2. Registrasi Akun Anggota (User Baru)\n");
+        printf("  1. Login sebagai Admin (Pustakawan)\n");
+        printf("  2. Login sebagai Mahasiswa (Anggota)\n");
+        printf("  3. Registrasi Akun Anggota Baru\n");
         printf("  0. Keluar Aplikasi (Exit)\n");
         printf("------------------------------------------------------------\n");
 
-        choice = read_int_range("Pilih menu [0-2]: ", 0, 2);
+        choice = read_int_range("Pilih menu [0-3]: ", 0, 3);
 
         if (choice == 0) {
-            return 0; /* Pengguna memilih keluar dari aplikasi */
-        } else if (choice == 2) {
+            return 0;
+        } else if (choice == 3) {
             register_new_user(users, user_count, max_users);
-        } else if (choice == 1) {
-            printf("\n--- LOGIN PENGGUNA ---\n");
+        } else if (choice == 1 || choice == 2) {
+            expected_role = (choice == 1) ? "admin" : "user";
+            printf("\n--- LOGIN %s ---\n", (choice == 1) ? "ADMIN (PUSTAKAWAN)" : "MAHASISWA (ANGGOTA)");
             read_string("Username : ", uname, sizeof(uname));
             read_string("Password : ", pass, sizeof(pass));
 
             idx = verify_credentials(users, *user_count, uname, pass);
             if (idx != -1) {
-                *logged_in_user = users[idx];
-                printf("\n[LOGIN BERHASIL] Selamat datang, %s! Anda masuk sebagai [%s].\n",
-                       logged_in_user->username, logged_in_user->role);
-                return 1;
+                /* Validasi kecocokan role akun dengan menu pilihan */
+                if (strcmp(users[idx].role, expected_role) != 0) {
+                    printf("\n[LOGIN GAGAL] Akun '%s' bukan berhak akses '%s'! Periksa kembali peran akun Anda.\n",
+                           uname, expected_role);
+                } else {
+                    *logged_in_user = users[idx];
+                    printf("\n[LOGIN BERHASIL] Selamat datang, %s! Sesi aktif sebagai [%s].\n",
+                           logged_in_user->username, logged_in_user->role);
+                    return 1;
+                }
             } else {
-                printf("\n[LOGIN GAGAL] Username atau password tidak cocok! Silakan coba lagi.\n");
+                printf("\n[LOGIN GAGAL] Username atau password salah!\n");
             }
         }
     }
