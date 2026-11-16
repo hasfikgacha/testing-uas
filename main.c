@@ -4,13 +4,14 @@
 #include "file_io.h"
 #include "utils.h"
 #include "auth.h"
+#include "sort.h"
 
 /* Array statis di Data Segment agar aman menampung >10.000 struct */
 static Book catalog[MAX_BOOKS];
 static User users[MAX_USERS];
 static Loan loans[MAX_LOANS];
 
-/* Kerangka Menu Admin (Akan diisi fungsionalitas penuh pada Tahap 3 & 4) */
+/* Menu Admin */
 static void run_admin_session(const User *current_admin, int *book_count, int *loan_count) {
     int choice;
     while (1) {
@@ -30,13 +31,17 @@ static void run_admin_session(const User *current_admin, int *book_count, int *l
         if (choice == 0) {
             printf("\n[INFO] Logout berhasil dari sesi Admin.\n");
             break;
+        } else if (choice == 2) {
+            /* Admin dapat melihat seluruh buku termasuk yang stoknya 0 (only_available = 0) */
+            interactive_sort_and_view_catalog(catalog, *book_count, 0);
+        } else {
+            printf("\n[INFO] Fitur Admin menu %d akan diimplementasikan pada Tahap 4.\n", choice);
+            press_enter_to_continue();
         }
-        printf("\n[INFO] Fitur menu %d akan diimplementasikan pada tahap berikutnya.\n", choice);
-        press_enter_to_continue();
     }
 }
 
-/* Kerangka Menu User (Akan diisi fungsionalitas penuh pada Tahap 4 & 5) */
+/* Menu User */
 static void run_user_session(const User *current_user, int *book_count, int *loan_count) {
     int choice;
     while (1) {
@@ -55,9 +60,13 @@ static void run_user_session(const User *current_user, int *book_count, int *loa
         if (choice == 0) {
             printf("\n[INFO] Logout berhasil dari sesi User.\n");
             break;
+        } else if (choice == 1) {
+            /* User hanya melihat buku yang sedang tersedia / stok > 0 (only_available = 1) */
+            interactive_sort_and_view_catalog(catalog, *book_count, 1);
+        } else {
+            printf("\n[INFO] Fitur User menu %d akan diimplementasikan pada Tahap 5.\n", choice);
+            press_enter_to_continue();
         }
-        printf("\n[INFO] Fitur menu %d akan diimplementasikan pada tahap berikutnya.\n", choice);
-        press_enter_to_continue();
     }
 }
 
@@ -84,7 +93,6 @@ int main(int argc, char *argv[]) {
     /* 3. Loop utama aplikasi */
     while (1) {
         if (!cla_logged_in) {
-            /* Tampilkan menu autentikasi interaktif jika belum login via CLA */
             if (!interactive_auth_menu(users, &user_count, MAX_USERS, &current_user)) {
                 printf("\nTerima kasih telah menggunakan Sistem Manajemen Perpustakaan!\n");
                 break;
@@ -97,7 +105,6 @@ int main(int argc, char *argv[]) {
             run_user_session(&current_user, &book_count, &loan_count);
         }
 
-        /* Setelah logout dari sesi CLA, kembalikan ke mode interaktif */
         cla_logged_in = 0;
     }
 
