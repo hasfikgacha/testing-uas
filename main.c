@@ -6,39 +6,12 @@
 #include "auth.h"
 #include "sort.h"
 #include "admin.h"
+#include "user.h"
 
-/* Array statis di Data Segment agar aman menampung >10.000 struct */
+/* Array statis di Data Segment agar aman menampung >10.000 struct tanpa Stack Overflow */
 static Book catalog[MAX_BOOKS];
 static User users[MAX_USERS];
 static Loan loans[MAX_LOANS];
-
-/* Menu User (Akan diselesaikan sepenuhnya pada Tahap 5) */
-static void run_user_session(const User *current_user, int *book_count, int *loan_count) {
-    int choice;
-    while (1) {
-        printf("\n============================================================\n");
-        printf("   MENU ANGGOTA PERPUSTAKAAN | Login sebagai: %-13s\n", current_user->username);
-        printf("============================================================\n");
-        printf("  1. Lihat & Urutkan Katalog Buku Tersedia (Sorting)\n");
-        printf("  2. Cari Buku (Berdasarkan ID / Judul)\n");
-        printf("  3. Pinjam Buku\n");
-        printf("  4. Kembalikan Buku\n");
-        printf("  5. Lihat Daftar Peminjaman Aktif Saya\n");
-        printf("  0. Logout (Kembali ke Menu Login)\n");
-        printf("------------------------------------------------------------\n");
-
-        choice = read_int_range("Pilih menu User [0-5]: ", 0, 5);
-        if (choice == 0) {
-            printf("\n[INFO] Logout berhasil dari sesi User.\n");
-            break;
-        } else if (choice == 1) {
-            interactive_sort_and_view_catalog(catalog, *book_count, 1);
-        } else {
-            printf("\n[INFO] Fitur User menu %d akan diimplementasikan pada Tahap 5.\n", choice);
-            press_enter_to_continue();
-        }
-    }
-}
 
 int main(int argc, char *argv[]) {
     int book_count = 0;
@@ -47,7 +20,7 @@ int main(int argc, char *argv[]) {
     User current_user;
     int cla_logged_in = 0;
 
-    /* 1. Inisialisasi dan muat seluruh berkas database ke memori */
+    /* 1. Inisialisasi dan muat seluruh berkas database (.txt) ke dalam memori */
     book_count = init_and_load_books(catalog, MAX_BOOKS);
     if (book_count < 0) {
         return 1;
@@ -60,7 +33,7 @@ int main(int argc, char *argv[]) {
         cla_logged_in = login_via_cla(argc, argv, users, user_count, &current_user);
     }
 
-    /* 3. Loop utama aplikasi */
+    /* 3. Loop utama navigasi berdasarkan Role */
     while (1) {
         if (!cla_logged_in) {
             if (!interactive_auth_menu(users, &user_count, MAX_USERS, &current_user)) {
@@ -72,9 +45,10 @@ int main(int argc, char *argv[]) {
         if (strcmp(current_user.role, "admin") == 0) {
             run_admin_session(&current_user, catalog, &book_count, loans, &loan_count);
         } else {
-            run_user_session(&current_user, &book_count, &loan_count);
+            run_user_session(&current_user, catalog, &book_count, loans, &loan_count);
         }
 
+        /* Setelah logout dari sesi CLA, kembalikan ke gerbang login interaktif */
         cla_logged_in = 0;
     }
 
