@@ -1,0 +1,29 @@
+# ==========================================
+# Makefile for CLI Library Management System
+# ==========================================
+
+# Compiler and Flags
+CC = gcc
+CFLAGS = -Wall -Wextra -std=c99
+
+# Target Executable Name
+TARGET = perpustakaan
+
+# Source Files and Object Files
+SRCS = main.c file_io.c utils.c auth.c sort.c admin.c user.c
+OBJS = $(SRCS:.c=.o)
+
+# Default Rule (runs when you type 'make')
+all: $(TARGET)
+
+# Linking all object files into the final executable
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+
+# Rule for compiling individual .c files into .o files
+%.o: %.c models.h file_io.h utils.h auth.h sort.h admin.h user.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Clean rule to remove compiled binaries (use 'make clean')
+clean:
+	rm -f $(OBJS) $(TARGET)
