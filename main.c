@@ -91,7 +91,6 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        /* Arahkan ke menu yang sesuai berdasarkan role akun */
         if (strcmp(current_user.role, "admin") == 0) {
             run_admin_session(&current_user, &book_count, &loan_count);
         } else {
