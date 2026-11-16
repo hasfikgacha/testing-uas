@@ -1,31 +1,9 @@
-# CLI Library Management System (Sistem Manajemen Perpustakaan Berbasis CLI)
+📖 CLI Library Management SystemProyek Akhir (UAS) Praktikum Pemrograman - Informatika FMIPA Universitas Syiah Kuala (2026)Sistem manajemen perpustakaan interaktif berbasis Command Line Interface (CLI) yang diimplementasikan murni dalam bahasa C standar (C99).✨ Fitur UtamaSistem dirancang dengan arsitektur memori Static Data Segment untuk memproses 10.000+ data buku secara instan dan aman dari risiko Stack Overflow.🔐 Role-Based Authentication: Gerbang masuk terpisah untuk Admin dan Mahasiswa, dilengkapi bypass login super cepat menggunakan Command Line Arguments (CLA).⚙️ Algoritma Sorting Native: Menyediakan 3 mesin pengurutan manual (Bubble Sort, Selection Sort, Insertion Sort) yang dilengkapi metrik pengukuran waktu eksekusi aktual (dalam milidetik).🛡️ Smart File I/O Parser: Mesin pembaca (custom parser) tangguh yang mampu menangani anomali format dataset Books.txt (seperti escaped quotes "" atau judul tanpa tanda petik). Data master aman (Read-Only) karena sistem otomatis membuat basis data operasional books_db.txt.📄 Sistem Paginasi Terminal: Menampilkan katalog data dalam bentuk tabel rapi berhalaman (15 buku/layar) untuk kenyamanan navigasi (Next, Prev, Go to Page).🔄 Sirkulasi Relasional: Validasi real-time untuk peminjaman (stok otomatis berkurang, pengambilan tanggal sistem otomatis) dan proteksi ketat (mencegah Admin menghapus buku yang sedang berstatus DIPINJAM).📂 Arsitektur & Struktur ModulSetiap fitur dipisahkan secara modular untuk mempermudah perawatan kode (clean code):BerkasModul UtamaTanggung Jawab Teknismodels.hData ContractDefinisi struktur Book, User, Loan & limitasi kapasitas konstan.file_io.c/hStorage EngineSinkronisasi I/O persisten (books_db.txt, user.txt, peminjaman.txt).auth.c/hSecurityOtorisasi Role-based, CLA Login parsers, dan registrasi akun baru.sort.c/hAlgorithmMesin 3 algoritma pengurutan & antarmuka pagination katalog.admin.c/hAdmin PanelCRUD katalog, sinkronisasi stok, dan audit rekapitulasi transaksi.user.c/hUser PanelMesin pencari case-insensitive & sirkulasi pinjam-kembali mandiri.utils.c/hCore UtilsPembersih buffer & validasi input ketat (mencegah infinite loop).🚀 Panduan Kompilasi & EksekusiProyek ini telah dilengkapi dengan Makefile untuk mempercepat proses kompilasi secara inkremental (hanya mengompilasi berkas yang berubah).1. Kompilasi (Build)Buka terminal pada direktori proyek dan jalankan perintah:make
+2. Menjalankan Aplikasi (Run)Mode Interaktif (Normal):./perpustakaan
+Mode Fast-Login (Via CLA):# Format langsung: ./perpustakaan <username> <password>
+./perpustakaan admin admin123
 
-Project Akhir (UAS) Praktikum Pemrograman Kelas A - Program Studi Informatika FMIPA Universitas Syiah Kuala (USK) Tahun 2026.
-
-## 👥 Anggota Kelompok
-| Nama Lengkap | NPM | Kontribusi Modul Utama |
-| :--- | :--- | :--- |
-| **[Nama Anggota 1]** | [NPM 1] | Core System, Struktur Data (`models.h`), & File I/O Engine |
-| **[Nama Anggota 2]** | [NPM 2] | Modul Admin CRUD (`Create`, `Update`, `Delete`) & Laporan Global[cite: 1] |
-| **[Nama Anggota 3]** | [NPM 3] | Modul Sirkulasi Anggota (`Borrow`, `Return`, Search, & Personal Loans)[cite: 1] |
-| **[Nama Anggota 4]** | [NPM 4] | Mesin 3 Algoritma Sorting Manual (`Bubble`, `Selection`, `Insertion`) & CLI Utils[cite: 1] |
-
----
-
-## 🏛️ Arsitektur Aplikasi & Struktur File
-Aplikasi ini dibangun menggunakan bahasa C standar (ANSI/C) dengan prinsip *clean code* dan modularitas tinggi[cite: 1]. 
-* **`models.h`**: Kontrak struktur data utama (`Book`, `User`, `Loan`) menggunakan `struct` dan `typedef`[cite: 1].
-* **`file_io.c` / `.h`**: Mesin pembaca dataset master (`Books.txt`)[cite: 2] dan pengelola basis data operasional (`books_db.txt`, `user.txt`, `peminjaman.txt`) secara persisten[cite: 1].
-* **`auth.c` / `.h`**: Gerbang autentikasi dengan pilihan role eksplisit (Admin / Mahasiswa)[cite: 1] serta dukungan *Command Line Arguments* (CLA)[cite: 1].
-* **`sort.c` / `.h`**: Implementasi mandiri 3 algoritma pengurutan tanpa pustaka eksternal (`qsort`)[cite: 1] serta sistem navigasi halaman (*pagination*).
-* **`admin.c` / `.h`**: Fungsionalitas penuh Admin untuk manajemen inventaris buku dan audit transaksi[cite: 1].
-* **`user.c` / `.h`**: Fungsionalitas pencarian string fleksibel dan sirkulasi peminjaman buku berbasis tanggal sistem[cite: 1].
-
----
-
-## ⚙️ Panduan Kompilasi & Menjalankan Program
-
-Pastikan kompiler `gcc` telah terpasang di sistem Anda. Buka terminal/PowerShell pada direktori proyek, lalu jalankan perintah kompilasi berikut[cite: 1]:
-
-```powershell
-gcc -Wall -Wextra -std=c99 main.c file_io.c utils.c auth.c sort.c admin.c user.c -o perpustakaan
+# Format flags: ./perpustakaan -u <username> -p <password>
+./perpustakaan -u mahasiswa -p mhs123
+3. Pembersihan (Clean)Menghapus seluruh berkas objek .o dan executable hasil kompilasi:make clean
+👥 Tim PengembangNama LengkapNPMFokus Pengembangan Modul[Nama Anggota 1][NPM 1]Core System, Data Structures, & File I/O Engine[Nama Anggota 2][NPM 2]Admin Panel (CRUD, Relational Protection), Global Reports[Nama Anggota 3][NPM 3]User Sirkulasi (Borrow/Return), Search Engine[Nama Anggota 4][NPM 4]Sorting Engine (Bubble/Selection/Insertion), CLI UtilitiesRepositori ini dinilai berdasarkan transparansi kontribusi melalui riwayat Commit dan Pull Request.
